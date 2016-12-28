@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.GL30;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.mygdx.game.Blok;
@@ -31,6 +32,7 @@ public class PlayScreen implements Screen {
 	Element blok;
 	Podloga p;
 	ArrayList<Element> arr;
+	public Element[][] table = new Element[11][15];
 	
 	public PlayScreen(TheBalls game){
 		this.game = game;
@@ -41,7 +43,6 @@ public class PlayScreen implements Screen {
 		game.shapeRend.setProjectionMatrix(gameCam.combined);
 		gameView = new FitViewport(640, 480, gameCam);
 		
-		
 		post1Text = new Texture("postolje.jpg");
 		ballText = new Texture("pinball2.png");
 		blokText = new Texture("blok.png");
@@ -51,6 +52,7 @@ public class PlayScreen implements Screen {
 		arr = new ArrayList<Element>();
 		arr.add(l);
 		arr.add(blok);
+		table[0][14] = blok;
 		
 	}
 	@Override
@@ -59,6 +61,18 @@ public class PlayScreen implements Screen {
 		
 	}
 
+	boolean colliding(Vector2 r1, Vector2 r2){
+		if(r1.x + objScale < r2.x)
+			return false;
+		if(r2.x + objScale < r1.x)
+			return false;
+		if(r1.y + objScale < r2.y)
+			return false;
+		if(r2.y + objScale < r1.y)
+			return false;
+		return true;
+	}
+	
 	@Override
 	public void render(float delta) {
 		// TODO Auto-generated method stub
@@ -67,8 +81,17 @@ public class PlayScreen implements Screen {
 		
 		if(Gdx.input.justTouched()){
 			
+			int xInd = (int)Math.round(Gdx.input.getX() / objScale);
+			int yInd = (int)Math.round(Gdx.input.getY() / objScale);
 			
-			arr.add(new Blok(Math.round(Gdx.input.getX() / objScale) * objScale - objScale / 2, Math.round(Gdx.input.getY() / objScale) * objScale - objScale / 2, blokText));
+			float xPos = xInd * objScale - (int)objScale / 2;
+			float yPos = yInd * objScale - (int)objScale / 2;
+
+			if(table[yInd - 1][xInd - 1] == null){
+				
+				arr.add(new Blok(xPos, yPos, blokText));
+				table[yInd - 1][xInd - 1] = arr.get(arr.size() - 1);
+			}
 			
 		}
 		
@@ -87,10 +110,18 @@ public class PlayScreen implements Screen {
 		double drawY = Math.round(Gdx.input.getY() / objScale) * objScale - objScale / 2;
 		Gdx.gl.glEnable(GL20.GL_BLEND);
 		
-		game.shapeRend.begin(ShapeType.Filled);
-		game.shapeRend.setColor(0, 0, 1, 0.6f);
-		game.shapeRend.rect((float)drawX, (float)drawY, objScale, objScale);
-		game.shapeRend.end();
+		int xInd = (int)Math.round(Gdx.input.getX() / objScale);
+		int yInd = (int)Math.round(Gdx.input.getY() / objScale);
+		if(xInd > 0 && xInd < 16 && yInd > 0 && yInd < 11){
+			game.shapeRend.begin(ShapeType.Filled);
+			
+			if(table[yInd - 1][xInd - 1] == null){
+				game.shapeRend.setColor(0, 0, 1, 0.6f);
+			}else
+				game.shapeRend.setColor(1, 0, 0, 0.6f);
+			game.shapeRend.rect((float)drawX, (float)drawY, objScale, objScale);
+			game.shapeRend.end();
+		}
 		
 	}
 
